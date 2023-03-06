@@ -13,8 +13,8 @@ from rest_framework.pagination import (LimitOffsetPagination,
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenViewBase
-from auth_yamdb.models import ConfirmationCode
-from auth_yamdb.utils import bland_code_hasher, salty_code_hasher
+from auth_jmdb.models import ConfirmationCode
+from auth_jmdb.utils import bland_code_hasher, salty_code_hasher
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from smtplib import SMTPSenderRefused
@@ -30,7 +30,7 @@ from .serializers import (CategorySerializer, CodeTokenObtainSerializer,
                           TitleReadonlySerializer, TitleSerializer,
                           UserProfileSerializer, UserSerializer)
 
-MAIL_SUBJECT = 'YAMDB: Your confirmation code'
+MAIL_SUBJECT = 'jmdb: Your confirmation code'
 MAIL_BODY = 'Hi {username}, here is your code: {code}'
 
 User = get_user_model()

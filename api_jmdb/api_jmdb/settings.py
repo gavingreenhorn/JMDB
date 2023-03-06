@@ -76,7 +76,7 @@ DATABASES = {
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'auth_yamdb.backends.ConfirmationCodeBackend'
+    'auth_jmdb.backends.ConfirmationCodeBackend'
 ]
 
 AUTH_USER_MODEL = "users.User"
