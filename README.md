@@ -47,9 +47,34 @@ Expected environment variables (the project would read .env file from ./infra di
 - **NGINX_HOST** - IP address that will host web server (127.0.0.1 if deploying locally)
 - **SECRET** - Django's SECRET_KEY
 
-## Deploying the project to a remote machine
+## Deploying the project to a remote machine with GitHub Actions workflow
 
 First off, install [docker engine](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) on your remote server using official guide (make sure that `Docker Compose` plugin is available as well). This is a prerequisite, so that GitHub Actions CI will be able to call Docker CLI.
+
+Then you'll need to provide all configuration information in your repository secrets.
+The following variables are expected:
+- `HOST` = IP address of your remote server
+- `USER` = your username on remote server
+- `SSH_KEY` = private key that will be used to establish connection with your server (it should already know the public key)
+- `PASSPHRASE` = only required if your SSH key is passphrase-protected (you'll also need to uncomment the setting in workflow file)
+- `DOCKER_USERNAME` = your Docker Hub username (the project is going to be made into a docker image and pushed to Docker Hub)
+- `DOCKER_USERNAME` = your Docker Hub password
+- `DB_ENGINE` = database backend that is going to be used by the project. Default: 'django.db.backends.postgresql'
+- `DB_HOST` = should be equal to the name of DB container in a docker-compose file. Default: jmdb_db
+- `DB_PORT` = port at which DB service is going to listen. Default: 5432
+- `DB_NAME` = database that's going to be created on DB container's deployment. Default: postgres
+- `DB_USER` = username of a user that's going to be created on deployment.
+- `DB_PASSWORD` = this user's password.  
+*These are passed to the DB container's environment as POSTGRES_USER and POSTGRES_PASSWORD variables. If you're going to replace DB backend, make sure to change ENV variables in the worflow according to the requirements of new backend*
+- `SECRET` = Django's SECRET_KEY
+- `SU_NAME` = Django Superuser account created on deployment
+- `SU_EMAIL` = its email
+- `SU_PASSWORD` = its password
+- `EMAIL_ADDRESS` = address of a mailbox that is going to be used to send out registration information to new users
+- `EMAIL_USER` = account name of the mailbox owner
+- `EMAIL_PASSWORD` = password to that account
+- `TELEGRAM_TOKEN` = *optional* Token for you Telegram bot that will send out notifications about successful deployment
+- `TELEGRAM_TO` = *optional* Chat ID to which notifications are going to be sent
 
 ## Registration
 
