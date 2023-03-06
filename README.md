@@ -59,13 +59,12 @@ The following variables are expected:
 - `PASSPHRASE` = only required if your SSH key is passphrase-protected (you'll also need to uncomment the setting in workflow file)
 - `DOCKER_USERNAME` = your Docker Hub username (the project is going to be made into a docker image and pushed to Docker Hub)
 - `DOCKER_USERNAME` = your Docker Hub password
-- `DB_ENGINE` = database backend that is going to be used by the project. Default: 'django.db.backends.postgresql'
 - `DB_HOST` = should be equal to the name of DB container in a docker-compose file. Default: jmdb_db
 - `DB_PORT` = port at which DB service is going to listen. Default: 5432
 - `DB_NAME` = database that's going to be created on DB container's deployment. Default: postgres
 - `DB_USER` = username of a user that's going to be created on deployment.
 - `DB_PASSWORD` = this user's password.  
-*These are passed to the DB container's environment as POSTGRES_USER and POSTGRES_PASSWORD variables. If you're going to replace DB backend, make sure to change ENV variables in the worflow according to the requirements of new backend*
+*These are passed to the DB container's environment as POSTGRES_USER and POSTGRES_PASSWORD variables. If you're going to replace DB backend, make sure to change ENV variables in the workflow according to the requirements of new backend*
 - `SECRET` = Django's SECRET_KEY
 - `SU_NAME` = Django Superuser account created on deployment
 - `SU_EMAIL` = its email
@@ -73,8 +72,8 @@ The following variables are expected:
 - `EMAIL_ADDRESS` = address of a mailbox that is going to be used to send out registration information to new users
 - `EMAIL_USER` = account name of the mailbox owner
 - `EMAIL_PASSWORD` = password to that account
-- `TELEGRAM_TOKEN` = *optional* Token for you Telegram bot that will send out notifications about successful deployment
-- `TELEGRAM_TO` = *optional* Chat ID to which notifications are going to be sent
+- `TELEGRAM_TOKEN` = *(optional)* Token for you Telegram bot that will send out notifications about successful deployment
+- `TELEGRAM_TO` = *(optional)* Chat ID to which notifications are going to be sent
 
 ## Registration
 
