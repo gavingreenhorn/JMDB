@@ -1,0 +1,43 @@
+services:
+
+  jmdb_db:
+    container_name: jmdb_db
+    image: postgres:13.0-alpine
+    volumes:
+      - postgre_db:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+  jmdb_web:
+    container_name: jmdb_web
+    image: gavingr/api_jmdb:latest
+    restart: always
+    volumes:
+     - static_data:/app/static/
+     - media_data:/app/media/
+    depends_on:
+      - jmdb_db
+    env_file:
+      - .env
+
+  jmdb_nginx:
+    container_name: jmdb_nginx
+    image: nginx:1.21.3-alpine
+    ports:
+     - "80:80"
+    volumes:
+     - ./nginx/jmdb.conf:/etc/nginx/conf.d/default.conf
+     - static_data:/var/html/static/
+     - media_data:/var/html/media
+    depends_on:
+      - jmdb_web
+    env_file:
+      - .env
+
+volumes:
+  static_data:
+    name: static_data
+  media_data:
+    name: media_data
+  postgre_db:
+    name: db_volume

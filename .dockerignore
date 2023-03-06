@@ -1,0 +1,3 @@
+**/static/*
+!redoc.yaml
+**/*.env

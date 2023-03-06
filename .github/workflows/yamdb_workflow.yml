@@ -1,0 +1,145 @@
+name: jmdb workflow
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9"]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: | 
+          python -m pip install --upgrade pip 
+          pip install flake8 pep8-naming flake8-broken-line flake8-return
+          pip install -r api_jmdb/requirements.txt 
+      - name: Test with flake8 and django tests
+        run: |
+          python -m flake8
+          pytest
+
+  build_and_push_to_docker_hub:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+    
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Docker 
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }} 
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          no-cache: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/api_jmdb:latest
+          file: api_jmdb/Dockerfile    
+
+  move_data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Copy static data
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: api_jmdb/static
+          remote: jmdb_data
+          rmRemote: true
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          privateKey: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
+      - name: Copy nginx conf
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: infra/nginx/default.conf
+          remote: nginx/jmdb.conf
+          rmRemote: true
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          privateKey: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
+      - name: Copy compose file
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: infra/docker-compose.yaml
+          remote: jmdb_compose.yaml
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          privateKey: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_FILE: /home/${{ secrets.USER }}/jmdb_compose.yaml
+      DJANGO_SUPERUSER_PASSWORD: ${{ secrets.SU_PASSWORD }}
+    needs: build_and_push_to_docker_hub
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: fresh docker compose deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          # password: ${{ secrets.PASSWORD }} # uncomment if you're using username & password pair
+          # passphrase: ${{ secrets.PASSPHRASE }} # uncomment if your SSH key is passphrase-protected
+          script: |
+            sudo docker compose -f ${{ env.COMPOSE_FILE }} down
+            sudo docker system prune -f
+            sudo docker volume rm $(sudo docker volume ls -qf dangling=true) 2>/dev/null
+
+            :> .env
+            echo NGINX_HOST=${{ secrets.HOST }} >> .env
+            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            
+            sudo docker compose -f ${{ env.COMPOSE_FILE }} pull jmdb_web
+            sudo docker compose -f ${{ env.COMPOSE_FILE }} up -d
+      - name: executing migrations and pre-configurations
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: | 
+            sudo docker cp jmdb_data/. jmdb_web:/app/static/
+            sudo docker exec jmdb_web python manage.py makemigrations reviews users auth_jmdb
+            sudo docker exec jmdb_web python manage.py migrate --verbosity 2
+            sudo docker exec jmdb_web python manage.py collectstatic --no-input
+            sudo docker exec jmdb_web python manage.py createsuperuser --no-input --username ${{ secrets.SU_NAME }} --email ${{ secrets.SU_EMAIL }} --password ${{ secrets.SU_PASSWORD }}
+  send_message:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: send message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: ${{ github.workflow }} успешно выполнен!
