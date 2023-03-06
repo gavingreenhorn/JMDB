@@ -70,7 +70,7 @@ jobs:
       - name: Copy nginx conf
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: infra/nginx/default.conf
+          local: infra/nginx/jmdb.conf
           remote: nginx/jmdb.conf
           rmRemote: true
           host: ${{ secrets.HOST }}
