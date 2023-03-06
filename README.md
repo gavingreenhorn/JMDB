@@ -1,6 +1,6 @@
 # JMDB
 
-[![jmdb workflow](https://github.com/gavingreenhorn/jmdb_final/actions/workflows/jmdb_workflow.yml/badge.svg?event=push)](https://github.com/gavingreenhorn/jmdb_final/actions/workflows/jmdb_workflow.yml)
+[![jmdb workflow](https://github.com/gavingreenhorn/jmdb/actions/workflows/jmdb_workflow.yml/badge.svg?event=push)](https://github.com/gavingreenhorn/jmdb/actions/workflows/jmdb_workflow.yml)
 
 ## Summary
 
