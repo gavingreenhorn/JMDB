@@ -1,5 +1,6 @@
 import hashlib
 
+from django.conf import settings
 from django.utils.encoding import force_bytes
 
 
@@ -8,4 +9,4 @@ def bland_code_hasher(*args):
 
 
 def salty_code_hasher(code):
-    return hashlib.md5(force_bytes(code + 'yourmom')).hexdigest()
+    return hashlib.md5(force_bytes(code + settings.SECRET_KEY)).hexdigest()
