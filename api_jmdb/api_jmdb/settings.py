@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'reviews.apps.ReviewsConfig',
     'users.apps.UsersConfig',
-    'auth_yamdb.apps.AuthConfig',
+    'auth_jmdb.apps.AuthConfig',
     'api.apps.ApiConfig',
     'rest_framework',
 ]
